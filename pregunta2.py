@@ -34,14 +34,11 @@ COMBINACIONES = [(3, 8), (3, 32), (7, 8), (7, 32)]
 
 
 def calcular_t(m: int, epsilon: float) -> int:
-    """Número de qubits de fase para tolerancia 2^-m con probabilidad de error
-    a lo más epsilon (cota de QPE): t = m + ceil(log2(2 + 1/(2 epsilon)))."""
     return m + int(np.ceil(np.log2(2 + 1 / (2 * epsilon))))
 
 
 def frecuencia_exito(conteos: dict[int, int], t: int, m: int,
                      theta: float = THETA) -> float:
-    """Fracción de resultados l con |l/2^t - theta| <= 2^-m."""
     Q = 2 ** t
     total = sum(conteos.values())
     exitos = sum(c for l, c in conteos.items()
@@ -50,7 +47,6 @@ def frecuencia_exito(conteos: dict[int, int], t: int, m: int,
 
 
 def mejor_estimacion(conteos: dict[int, int]) -> int:
-    """Se elige como l* el resultado observado más frecuente (la moda)."""
     return max(conteos, key=conteos.get)
 
 

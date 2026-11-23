@@ -1,0 +1,15 @@
+Backend: ibm_kingston
+m=3, eps=1/8, t=6: job dc1i48ts2omc738al38g (profundidad 1720)
+m=3, eps=1/32, t=8: job dc1i492nj2vs73dfcjo0 (profundidad 2361)
+m=7, eps=1/8, t=10: job dc1i49eq4uuc73a3v6gg (profundidad 3034)
+m=7, eps=1/32, t=12: job dc1i49inj2vs73dfcjqg (profundidad 3737)
+
+Backend: ibm_kingston
+m = 3, epsilon = 1/8: uso de QPU = 0 s (job dc1i48ts2omc738al38g)
+m = 3, epsilon = 1/32: uso de QPU = 0 s (job dc1i492nj2vs73dfcjo0)
+m = 7, epsilon = 1/8: uso de QPU = 0 s (job dc1i49eq4uuc73a3v6gg)
+m = 7, epsilon = 1/32: uso de QPU = 0 s (job dc1i49inj2vs73dfcjqg)
+Para m = 3 y epsilon = 1/8: frecuencia de éxito = 0.4550; fase estimada = 23/64
+Para m = 3 y epsilon = 1/32: frecuencia de éxito = 0.4310; fase estimada = 90/256
+Para m = 7 y epsilon = 1/8: frecuencia de éxito = 0.1080; fase estimada = 362/1024
+Para m = 7 y epsilon = 1/32: frecuencia de éxito = 0.0360; fase estimada = 1248/4096

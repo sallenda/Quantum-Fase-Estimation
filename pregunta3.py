@@ -1,16 +1,3 @@
-"""Ejecución de QPE en un computador cuántico de IBM.
-
-Uso:
-    python pregunta3.py            # usa resultados3.json si existe; si no, envía los trabajos a IBM
-    python pregunta3.py --enviar   # fuerza el envío de nuevos trabajos a IBM
-    python pregunta3.py --probar   # solo transpila contra un backend simulado (no envía nada)
-
-Requiere una cuenta guardada previamente (como en la Tarea 2), por ejemplo:
-    QiskitRuntimeService.save_account(channel="ibm_quantum_platform",
-                                      token="...", instance="...")
-Opcionalmente se puede fijar el backend con la variable de entorno IBM_BACKEND.
-"""
-
 import json
 import os
 import sys
@@ -27,7 +14,6 @@ ARCHIVO = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 
 def construir_circuitos(backend):
-    """Construye y transpila los cuatro circuitos para el backend dado."""
     pm = generate_preset_pass_manager(optimization_level=3, backend=backend)
     circuitos = []
     for m, inv_eps in COMBINACIONES:
@@ -36,8 +22,30 @@ def construir_circuitos(backend):
     return circuitos
 
 
+def uso_qpu(job, intentos: int = 12, espera: float = 5.0) -> float:
+    import time
+    for _ in range(intentos):
+        uso = job.usage()
+        if uso:
+            return uso
+        time.sleep(espera)
+    return job.usage()
+
+
+def actualizar_usos(datos):
+    pendientes = [e for e in datos["experimentos"] if not e["uso_qpu_segundos"]]
+    if not pendientes:
+        return False
+    from qiskit_ibm_runtime import QiskitRuntimeService
+    service = QiskitRuntimeService()
+    for exp in pendientes:
+        exp["uso_qpu_segundos"] = uso_qpu(service.job(exp["job_id"]))
+    with open(ARCHIVO, "w", encoding="utf-8") as f:
+        json.dump(datos, f, indent=2)
+    return True
+
+
 def ejecutar_en_ibm():
-    """Envía un trabajo por circuito, guarda conteos y uso de QPU en JSON."""
     from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2
 
     service = QiskitRuntimeService()
@@ -65,7 +73,7 @@ def ejecutar_en_ibm():
             "inv_eps": inv_eps,
             "t": t,
             "job_id": job.job_id(),
-            "uso_qpu_segundos": job.usage(),
+            "uso_qpu_segundos": uso_qpu(job),
             "conteos": {str(l): int(c) for l, c in conteos.items()},
         })
         # Se guarda tras cada trabajo para no perder resultados
@@ -75,7 +83,6 @@ def ejecutar_en_ibm():
 
 
 def probar_transpilacion():
-    """Transpila contra un backend falso para revisar el tamaño de los circuitos."""
     from qiskit_ibm_runtime.fake_provider import FakeMarrakesh
 
     backend = FakeMarrakesh()
@@ -96,6 +103,7 @@ def main():
     else:
         with open(ARCHIVO, encoding="utf-8") as f:
             datos = json.load(f)
+        actualizar_usos(datos)
 
     for exp in datos["experimentos"]:
         m, inv_eps, t = exp["m"], exp["inv_eps"], exp["t"]
@@ -105,8 +113,6 @@ def main():
         l_star = mejor_estimacion(conteos)
         imprimir_linea(m, inv_eps, p_ibm, l_star, t)
 
-    # Información adicional para resultados3.pdf (va a stderr para que la
-    # salida estándar tenga exactamente las cuatro líneas pedidas)
     print(f"\nBackend: {datos['backend']}", file=sys.stderr)
     for exp in datos["experimentos"]:
         print(f"m = {exp['m']}, epsilon = 1/{exp['inv_eps']}: "
